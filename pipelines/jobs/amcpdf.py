@@ -1,21 +1,30 @@
 import fitz
 import pandas as pd
 import os
+from pipelines.common import *
+from time import sleep
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+PDF_FOLDER = os.path.join(PROJECT_ROOT, 'downloads/CertStatement/')
+
+# distdate 2012 = December 2020
+def download_pdf(distdate):
+    url = "https://sf.citidirect.com/stfin/jsp/deallist.jsp"
+    driver = getDriver()
+    driver.get(url)
+    amc_page = driver.find_element_by_link_text("2006-AMC1")
+    amc_page.click()
+    sleep(1)
+    elements = driver.find_element_by_xpath(f'//a[contains(@href,"CertStmtCMLT06AMC1{distdate}")]')
+    elements.click()
+    sleep(10)
+    driver.quit()
 
 
-# doc = fitz.Document('/Users/rushellwhite/Projects/trex/pdfs/CertStmtCMLT06AMC10712.pdf')
-#
-# for x in range(doc.pageCount):
-#     print(f'Page {x}')
-#     page = doc.loadPage(x)
-#     if 'SOURCE OF FUNDS' in page.getTextPage().extractText():
-#         print('True')
-
-
-def tableOfContents(document):
+def getReconLocation(document):
     recon_page = 1
     for page_num in range(document.pageCount):
-        doc_page = doc.loadPage(page_num)
+        doc_page = document.loadPage(page_num)
         if 'SOURCE OF FUNDS' in doc_page.getTextPage().extractText():
             recon_page += page_num
 
@@ -65,14 +74,27 @@ def getReconData(document, inde):
     return dic
 
 
-frames = []
-for pdf in os.listdir('pdfs/'):
-    if '.pdf' in pdf:
-        doc = fitz.Document(os.getcwd() + '/pdfs/' + pdf)
-        ind = tableOfContents(doc)
-        records = getReconData(doc, ind)
-        frames.append(pd.DataFrame.from_records([records]))
+def makeDataframe() -> pd.DataFrame:
+    frames = []
+    for pdf in os.listdir(PDF_FOLDER):
+        if '.pdf' in pdf:
+            doc = fitz.Document(PDF_FOLDER + pdf)
+            ind = getReconLocation(doc)
+            records = getReconData(doc, ind)
+            frames.append(pd.DataFrame.from_records([records]))
+    df = pd.concat(frames)
+    return df
 
-final = pd.concat(frames)
-final.to_csv('data.csv',index=False)
+
+def uploadDataframe(distdate):
+    df = makeDataframe()
+    print(df)
+    uploadToGCSBucket("rushtrexgroup", df, f"loandetails/CertStmt{distdate}.csv")
+
+
+def etl(distdate):
+    download_pdf(distdate)
+    bucketfile('.pdf')
+    uploadDataframe(distdate)
+
 
