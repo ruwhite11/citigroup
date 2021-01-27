@@ -89,7 +89,7 @@ def makeDataframe() -> pd.DataFrame:
 def uploadDataframe(distdate):
     df = makeDataframe()
     print(df)
-    uploadToGCSBucket("rushtrexgroup", df, f"loandetails/CertStmt{distdate}.csv")
+    uploadToGCSBucket("rushtrexgroup", df, f"CertStatements/CertStmt{distdate}.csv")
 
 
 def etl(distdate):
