@@ -16,7 +16,7 @@ PREFERENCES = {
 
 
 def uploadToGCSBucket(bucket, df, filename):
-    df.to_csv(f"gs://{bucket}/{filename}")
+    df.to_csv(f"gs://{bucket}/{filename}",index=False)
 
 
 def getDriver():
@@ -25,9 +25,9 @@ def getDriver():
     driver = webdriver.Chrome(CHROME_DRIVER, options=options)
     return driver
 
-def bucketfile(filetype):
+def bucketfile(filetype:str):
     for file in os.listdir(DOWNLOAD_FOLDER):
-        if filetype == '.csv' and file.endswith('csv'):
+        if filetype.lower() == '.csv' and file.endswith('csv'):
             shutil.move(DOWNLOAD_FOLDER + '/' + file,DOWNLOAD_FOLDER + '/loandetail/' + file)
-        if filetype == '.pdf' and file.endswith('.pdf'):
+        if filetype.lower() == '.pdf' and (file.endswith('.pdf') or file.endswith('.PDF')):
             shutil.move(DOWNLOAD_FOLDER + '/' + file,DOWNLOAD_FOLDER + '/CertStatement/' + file)

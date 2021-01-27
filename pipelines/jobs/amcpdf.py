@@ -15,7 +15,7 @@ def download_pdf(distdate):
     amc_page = driver.find_element_by_link_text("2006-AMC1")
     amc_page.click()
     sleep(1)
-    elements = driver.find_element_by_xpath(f'//a[contains(@href,"CertStmtCMLT06AMC1{distdate}")]')
+    elements = driver.find_element_by_xpath('//a[contains(@href,"CertStmtCMLT06AMC1{}")]'.format(distdate))
     elements.click()
     sleep(10)
     driver.quit()
@@ -77,12 +77,13 @@ def getReconData(document, inde):
 def makeDataframe() -> pd.DataFrame:
     frames = []
     for pdf in os.listdir(PDF_FOLDER):
-        if '.pdf' in pdf:
+        if ('.pdf' or '.PDF') in pdf:
             doc = fitz.Document(PDF_FOLDER + pdf)
             ind = getReconLocation(doc)
             records = getReconData(doc, ind)
             frames.append(pd.DataFrame.from_records([records]))
     df = pd.concat(frames)
+    df.columns = df.columns.str.replace(" ","_")
     return df
 
 

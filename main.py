@@ -28,9 +28,10 @@ l = []
 for arg in vars(args):
     print(arg, getattr(args, arg))
     if arg != "etl":
-        try:
-            l.append(int(getattr(args, arg)))
-        except:
-            l.append(getattr(args, arg))
+        l.append(getattr(args, arg))
+        # try:
+        #     l.append(int(getattr(args, arg)))
+        # except:
+        #     l.append(getattr(args, arg))
 
 met(*l)
